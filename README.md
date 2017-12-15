@@ -8,7 +8,7 @@ A implementação inicial será baseada em um bot do Telegram mas, caso alguém 
 
 ## O que tem nesse repositório?
 Planejados, residem, aqui, os seguintes subprojetos:
-- doc: Documentação, *whitepaper*, e o que mais caber aqui dentro que seja do gênero;
+- doc: Documentação, *whitepaper*, e o que mais couber aqui dentro que seja do gênero;
 - lulzd: Daemon de sincronização de um nó do lulzcoin;
 - internetz: Carteira CLI para lulzcoin.
 
