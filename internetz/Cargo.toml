@@ -1,0 +1,7 @@
+[package]
+name = "internetz"
+version = "0.1.0"
+authors = ["Lucas Vieira <lucasvieira@protonmail.com>"]
+description = "Wallet client for lulzcoin"
+
+[dependencies]

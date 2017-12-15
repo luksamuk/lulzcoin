@@ -1,0 +1,7 @@
+[package]
+name = "lulzd"
+version = "0.1.0"
+authors = ["Lucas Vieira <lucasvieira@protonmail.com>"]
+description = "Lulzcoin blockchain synchronization daemon"
+
+[dependencies]
