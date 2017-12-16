@@ -5,3 +5,4 @@ authors = ["Lucas Vieira <lucasvieira@protonmail.com>"]
 description = "Wallet client for lulzcoin"
 
 [dependencies]
+rustyline = "1.0.0"
