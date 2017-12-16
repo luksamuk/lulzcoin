@@ -59,6 +59,6 @@ fn main() {
         }
     }
 
-    //rl.save_history(".internetz-history").unwrap();
+    rl.save_history(".internetz-history").unwrap();
     
 }
