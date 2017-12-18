@@ -15,7 +15,7 @@ pub struct Node {
 pub struct Transaction {
     sender: String,
     recipient: String,
-    amount: u64,
+    amount: f64,
 }
 
 // ---
@@ -84,4 +84,18 @@ impl Blockchain {
         hasher.input(&bytes);
         hasher.result_str()
     }
+
+    pub fn new_transaction(&mut self, sender: &String, recipient: &String, amount: f64) -> u64 {
+        self.pending.push(Transaction {
+            sender: sender.clone(),
+            recipient: recipient.clone(),
+            amount: amount,
+        });
+
+        self.chain.last()
+            .expect("Badly-initialized blockchain. Use new() to initialize a local blockchain.")
+            .header.index + 1
+    }
+
+    
 }
