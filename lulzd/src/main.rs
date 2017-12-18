@@ -10,6 +10,7 @@ pub mod chain;
 
 fn main() {
     let mut blockchain = chain::Blockchain::new();
+    blockchain.new_transaction(&"me".to_owned(), &"you".to_owned(), 0.000045); // wew lad
     println!("Hello, world!");
     println!("Blockchain serialization:\n{}",
              serde_json::to_string_pretty(&blockchain).unwrap());

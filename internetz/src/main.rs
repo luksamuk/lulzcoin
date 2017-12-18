@@ -43,7 +43,7 @@ fn main() {
                             println!("You're gonna get paid in INTERNETZ: Worth more than a bar of lulz.");
                             println!("COMMAND LIST:\n{}", COMMANDS);
                         },
-                        _       => println!("Nao implementado"),
+                        _ => println!("Nao implementado"),
                     }
                 }
             },
