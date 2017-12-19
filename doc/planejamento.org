@@ -1,0 +1,18 @@
+* Da interface Telegram
+** Registro e geração de endereços só poderá ser feito através do bot, em janela privada.
+** O bot associará o username (@username) a um endereço.
+** Em termos de segurança (evitar que alguém faça transações pelo outro), o resto será pensado depois. Preciso de ajuda. Talvez usando o critério do username?
+
+
+* Da base de dados
+** HashMap contendo relação nome => endereço.
+
+
+* Da mineração
+** O bot deverá analisar mensagens direcionadas aos usuários registrados.
+** O bot reconhecerá cadeias de diálogo: usuário -> resposta -> usuário -> resposta etc
+** Em caso de branching na conversa (mais de uma resposta a uma mensagem), o bot considerará apenas o branch maior.
+** O bot guardará o índice da última mensagem lida até aquele ponto, e nunca analisará conversas anteriores ao momento exato de sua inicialização.
+** Mensagens que servem como resposta a mensagens que estejam antes da última mensagem serão desconsideradas, caso não façam parte de um branch já monitorado. Dessa forma, evita-se a fragmentação de um branch em vários sub-branches, o que potencialmente comprometeria a estimativa de valor de uma treta grande (ela seria dividida em várias menores).
+*** Cuidado com essa regra. Precisamos garantir que ela só seja assegurada para respostas a mensagens que não respondem a algo anterior, ou que já tenham gerado um branch já verificado.
+** Cada branch terá um timeout com um certo valor de revoluções, que fará a treta expirar mais rápido a cada mensagem. Ao expirar, a treta será adicionada à lista de análise do servidor, e ganha a treta de maior entropia entre os membros.

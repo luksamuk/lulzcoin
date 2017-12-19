@@ -1,24 +1,142 @@
 \documentclass[conference]{IEEEtran}
 \usepackage{blindtext, graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese,english]{babel}
+
+\ifCLASSINFOpdf
+\else
+
+\fi
+
+%\hyphenation{op-tical net-works semi-conduc-tor}
+\usepackage{hyphenat}
+\hyphenation{mate-mática recu-perar}
+
 
 \begin{document}
-\title{Lulzcoin: Uma moeda completamente inútil}
-\author{\IEEEauthorBlockN{Lucas Vieira}
+\selectlanguage{portuguese}
+
+\title{Lulzcoin: Uma criptomoeda inútil como termômetro de discussões acaloradas em \textit{chats} públicos}
+\author{\IEEEauthorBlockN{Lucas Vieira}\\
 \IEEEauthorBlockA{lucasvieira@protonmail.com\\
 https://luksamuk.github.io}}
 
 \maketitle
 
-\begin{abstract}
-Este é o resumo do paper. \blindtext[1]
-\end{abstract}
 
+\begin{abstract}
+%\boldmath
+Criptomoedas são uma nova fonte de investimento e de debate mundial. Propõe-se a criação da \textit{lulzcoin}, uma criptomoeda que funciona como uma sátira à grande quantidade de novas criptomoedas que vêm surgindo atualmente, e à interação atritosa entre membros de diversas culturas em comunidades públicas online. Através das interações destes membros, calcula-se um nível de entropia dos atritos de conversas online que sirva para substituir os algoritmos de cálculo de \textit{proof-of-work}, comumente usados em criptomoedas, gerando,
+\end{abstract}
 \begin{IEEEkeywords}
-bitcoin, blockchain, cryptocurrency, troll.
+criptomoeda, criptografia, discussões, treta, troll, bitcoin, blockchain.
 \end{IEEEkeywords}
 
+\selectlanguage{english}
+\begin{abstract}
+%\boldmath
+Cryptocurrencies are a new worldwide source of investment and debate. We propose the creation of \textit{lulzcoin}, a cryptocurrency which works as a satire to the great amount of new cryptocurrencies which have been appearing lately, and to the conflictuous interaction between members of several cultures in public online communities. Through the interactions of these members, we calculate an entropy level of the online chats's conflicts, which could replace the algorithms for calculation of \textit{proof-of-work} commonly used in cryptocurrencies, therefore creating a peculiar way to mine for new blocks of a cryptocurrency.
+\end{abstract}
+\begin{IEEEkeywords}
+cryptocurrency, cryptography, discussions, flamewar, troll, bitcoin, blockchain.
+\end{IEEEkeywords}
+
+\selectlanguage{portuguese}
+
+\IEEEpeerreviewmaketitle
+
+
+
 \section{Introdução}
-\blindtext
+% TODO: CITAÇÕES NECESSÁRIAS EM TODO O CANTO AQUI. Eu saí jogando informações sem ter fontes.
+% Não que elas não sejam verdade, mas preciso especificar de onde vieram.
+% Provável que existam estas informações em NAKAMOTO.
+Ao longo de alguns anos, criptomoedas ascenderam como uma forma de efetuar transações de forma internacional, e sem submissão a instituições financeiras centralizadas. Após a criação do \textit{Bitcoin} [INSIRA A CITAÇÃO AQUI], diversas outras criptomoedas surgiram, cada qual com sua forma de resolver problemas identificados em sua especificação original.
+As criptomoedas também colocaram em evidência a estrutura de dados que existe sob as mesmas, e que dá validade às transações, de forma segura e descentralizada: a \textit{blockchain}, uma cadeia de blocos de transações, verificadas por um sistema de pares que, ao possuir uma cópia de toda a cadeia de blocos, identificam um número que atenda a certas especificações, para que estas transações sejam adicionadas, de forma permanente, a esta cadeia, na forma de um bloco.
+Existem diversos tipos de especificações para a criação destes novos blocos. O mais comum é a \textit{proof-of-work}, que sustenta a ideia da realização de um trabalho exaustivo por uma máquina, mas que seja, em contrapartida, facilmente verificável.
+Enquanto as implementações do \textit{Bitcoin} utilizam o algoritmo \textit{hashcash} [CITAÇÃO NECESSÁRIA] para implementar a \textit{proof-of-work} de sua \textit{blockchain}, propomos, aqui, uma nova criptomoeda, feita com o único intuito de diversão, e que tenha seu \textit{proof-of-work} baseado na interação de usuários em aplicativos de chat ou, mais especificamente, nos atritos entre estes usuários, e na atenção em que um usuário ganha por causar este atrito. Esta característica peculiar dará forma e motor à criptomoeda aqui discutida, a \textit{lulzcoin}.
+\textit{Lulzcoin} não possui uma rigorosidade quanto ao seu formato e suas especificações como outras criptomoedas, já que sua idealização é feita, principalmente, a partir de uma brincadeira. Dado que comunidades online abertas têm a tendência a criar conflitos, devido à natureza aleatória dos indivíduos que as frequentam, a \textit{lulzcoin} poderia beneficiar-se da interação dos membros para realizar a construção de seus blocos, tendo, portanto, pouca importância como moeda, e mais importância como um tipo de "termômetro" impreciso do calor das discussões geradas nestes ambientes.
+
+%\section{Transações}
+%\blindtext
+
+\section{Prova-de-Trabalho}
+% Usar bots do Telegram.
+% Identificar tretas isoladas verificando discussões interligadas por quotes (resposta direta ou menções)
+% Identificar entropia da discussão a partir de recursos-chave
+% Recursos-chave podem ser usos de caps lock, uso de palavras "negativas", emojis específicos (ou stickers associados a certos tipos de emojis)
+%\blindtext
+
+\section{Rede}
+%\blindtext
+
+\subsection{Consenso}
+%\blindtext
+
+\section{Incentivos}
+%\blindtext
+
+%\section{Uso de espaço em disco}
+%\blindtext
+
+%\section{Verificação simplificada de pagamentos}
+%\blindtext
+
+%\section{Privacidade}
+%\blindtext
+
+\section{Cálculos}
+%\blindtext
+
+\section{Métodos de Interação}
+%\blindtext
+
+\subsection{\textit{Bot} para Telegram}
+%\blindtext
+
+\subsection{Carteira virtual}
+%\blindtext
+
+
+
 
 \section{Conclusão}
+%\blindtext
+
+
+%\appendices
+%\section{Proof of the First Zonklar Equation}
+%\blindtext
+
+% use section* for acknowledgement
+\section*{Acknowledgment}
+
+
+The authors would like to thank...
+
+
+
+\ifCLASSOPTIONcaptionsoff
+  \newpage
+\fi
+
+
+\begin{thebibliography}{1}
+
+\bibitem{IEEEhowto:kopka}
+H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
+  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
+
+\end{thebibliography}
+
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{picture}}]{John Doe}
 \blindtext
+\end{IEEEbiography}
+
+
+% that's all folks
+\end{document}
+
+
