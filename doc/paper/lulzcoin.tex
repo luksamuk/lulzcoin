@@ -6,7 +6,6 @@
 
 \ifCLASSINFOpdf
 \else
-
 \fi
 
 %\hyphenation{op-tical net-works semi-conduc-tor}
@@ -17,10 +16,12 @@
 \begin{document}
 \selectlanguage{portuguese}
 
-\title{Lulzcoin: Uma criptomoeda inútil como termômetro de discussões acaloradas em \textit{chats} públicos}
-\author{\IEEEauthorBlockN{Lucas Vieira}\\
-\IEEEauthorBlockA{lucasvieira@protonmail.com\\
-https://luksamuk.github.io}}
+\title{Lulzcoin: Uma criptomoeda satírica como medidor de discussões em canais de \textit{chat} públicos}
+\author{Lucas Vieira\\lucasvieira@protonmail.com\\https://luksamuk.github.io}
+
+%\author{\IEEEauthorBlockN{Lucas Vieira}\\
+%\IEEEauthorBlockA{lucasvieira@protonmail.com\\
+%https://luksamuk.github.io}}
 
 \maketitle
 
@@ -58,15 +59,24 @@ Existem diversos tipos de especificações para a criação destes novos blocos.
 Enquanto as implementações do \textit{Bitcoin} utilizam o algoritmo \textit{hashcash} [CITAÇÃO NECESSÁRIA] para implementar a \textit{proof-of-work} de sua \textit{blockchain}, propomos, aqui, uma nova criptomoeda, feita com o único intuito de diversão, e que tenha seu \textit{proof-of-work} baseado na interação de usuários em aplicativos de chat ou, mais especificamente, nos atritos entre estes usuários, e na atenção em que um usuário ganha por causar este atrito. Esta característica peculiar dará forma e motor à criptomoeda aqui discutida, a \textit{lulzcoin}.
 \textit{Lulzcoin} não possui uma rigorosidade quanto ao seu formato e suas especificações como outras criptomoedas, já que sua idealização é feita, principalmente, a partir de uma brincadeira. Dado que comunidades online abertas têm a tendência a criar conflitos, devido à natureza aleatória dos indivíduos que as frequentam, a \textit{lulzcoin} poderia beneficiar-se da interação dos membros para realizar a construção de seus blocos, tendo, portanto, pouca importância como moeda, e mais importância como um tipo de "termômetro" impreciso do calor das discussões geradas nestes ambientes.
 
-%\section{Transações}
+\section{Transações}
 %\blindtext
 
-\section{Prova-de-Trabalho}
-% Usar bots do Telegram.
-% Identificar tretas isoladas verificando discussões interligadas por quotes (resposta direta ou menções)
-% Identificar entropia da discussão a partir de recursos-chave
-% Recursos-chave podem ser usos de caps lock, uso de palavras "negativas", emojis específicos (ou stickers associados a certos tipos de emojis)
-%\blindtext
+\section{\textit{Proof-of-Work}}
+O diferencial do \textit{lulzcoin} é a forma como funciona o seu algoritmo de \textit{proof-of-work}. Um algoritmo desse tipo existe com o intuito de ser uma operação difícil de ser calculada em tempo hábil, mas que seja fácil verificar o resultado, quando o mesmo é obtido.
+
+No caso do \textit{lulzcoin}, foi idealizado um algoritmo que pudesse traduzir certos tipos de mensagens em valores de entropia e, ao fim de um ciclo, o detentor do maior valor de entropia seria o ganhador. Obviamente, este valor precisa se enquadrar à ideia do \textit{proof-of-work} no sentido de que, mesmo sendo um tipo de generalização numérica de várias mensagens, deve ser possível identificar o recipiente que enviou a mensagem e a entropia, através de apenas um identificador.
+
+Antes de mais nada, é preciso firmar bases para a forma como o algoritmo deverá analisar estas mensagens. A implementação primária desta tecnologia é feita com base no famoso aplicativo \textit{Telegram} e em seu sistema de grupos. Cada mensagem de um grupo do \textit{Telegram} pode ser uma resposta direta a outra; da mesma forma, cada mensagem pode ter também uma ou mais menções a usuários.
+Dados estes elementos, podemos estabelecer as seguintes regras de consideração de mensagens:
+
+\begin{itemize}
+\item As conversas com potencial entrópico serão chamadas \textit{threads}. Uma \textit{thread} é criada a partir da ligação linear entre pelo menos duas mensagens, através do sistema de resposta direta ou de menções a nomes de usuário (\texttt{@nomedousuario}). A primeira mensagem de uma \textit{thread} determina quem é o dono da mesma, e quem irá lucrar com a entropia gerada por esta. Mensagens subsequentes do dono da \textit{thread} não serão consideradas para efeito de cálculos subsequentes de entropia da mesma.
+\item Uma \textit{thread} pode acabar, em algum ponto, gerando ``sub-\textit{threads}'', quando uma de suas mensagens recebe mais de uma resposta. Estas ``sub-\textit{threads}'' são chamadas \textit{branches}. Cada \textit{branch} terá sua entropia calculada como uma \textit{thread} independente e, no momento em que se tornar necessário calcular toda a entropia da \textit{thread}, apenas a \textit{branch} de maior altura, a partir daquele ponto, será considerada; outras serão descartadas.\footnote{Talvez seja mais conveniente considerar apenas a primeira mensagem que chegar, descartando demais \textit{branches} futuras. De qualquer forma, a própria detecção de uma \textit{branch} precisa ser algo feito cuidadosamente, já que implica em alguma forma eficiente e não-destrutiva de análise de existência de branches. Portanto, é provável que uma decisão assim não seja necessariamente uma estratégia de simplificação de implementação.}
+\item Cada \textit{thread} tem uma expectativa de vida, que aqui chamaremos de \textit{lifetime}.\footnote{Embora não pareça tão óbvio, o \textit{lifetime} de uma thread é um dos recursos utilizados para conferir certo alívio ao aplicativo de análise de mensagens, já que obriga \textit{threads} a serem descartadas após certo tempo. Dessa forma, podemos abrir espaço de memória e processamento para a análise de elegibilidade de outras e de novas \textit{threads}.} O \textit{lifetime} de uma \textit{thread} é um número que decresce com o passar do tempo; para fins de sincronização, o \textit{lifetime} é computado antes de quaisquer operações, a partir de uma marca digital de tempo universal, que chamaremos de \textit{timestamp}, determinando o início da thread. Dessa forma, independente das capacidades da máquina, será possível determinar o período de tempo de atividade de uma thread. O tempo de vida final, quando requerido, será a diferença de tempo entre os \textit{timestamps} da primeira e da última mensagem da \textit{thread}.
+\item Caso uma mensagem aparente ser elegível à incorporação em uma \textit{thread} existente (por exemplo, se esta mensagem for uma resposta direta à última mensagem de uma \textit{thread}), mas a \textit{thread} em questão já esteja com seu \textit{lifetime} expirado, a mensagem não será adicionada à \textit{thread}. Esta mensagem, porém, poderá ser o início de sua própria \textit{thread}, desde que receba uma mensagem direta.
+\item Estas \textit{threads} estarão sempre agrupadas para análise, de forma que, ao fim de um certo tempo, as \textit{threads} serão analisadas, e será agraciado o dono da \textit{thread} de maior entropia. Cada ciclo de início de \textit{threads}, encerrado com esta comparação de entropias, será considerado uma onda (\textit{wave}).\footnote{Assim como o sistema de \textit{lifetimes}, o sistema de \textit{waves} também funciona como um dos reguladores, evitando sobrecargas no hardware minerador, e igualmente evitando monopólio de um participante sobre os outros, através do aumento de chances de lucro a partir da criação de múltiplas \textit{threads}.} Os tempos de vida das \textit{waves} serão tempos fixos, reajustados através do balanceamento do nível de demanda por blocos da rede, o que será determinado utilizando pares remotos (explicado mais adiante). Cada participante só poderá ter UMA \textit{thread} registrada por \textit{wave}.\footnote{Afim de minimizar inutilização de uma \textit{thread} em andamento, recomendamos desconsiderar \textit{threads} subsequentes ao invés de substituir velhas por novas.}
+\end{itemize}
 
 \section{Rede}
 %\blindtext
@@ -86,7 +96,7 @@ Enquanto as implementações do \textit{Bitcoin} utilizam o algoritmo \textit{ha
 %\section{Privacidade}
 %\blindtext
 
-\section{Cálculos}
+\section{Constantes e Cálculos}
 %\blindtext
 
 \section{Métodos de Interação}
@@ -94,6 +104,7 @@ Enquanto as implementações do \textit{Bitcoin} utilizam o algoritmo \textit{ha
 
 \subsection{\textit{Bot} para Telegram}
 %\blindtext
+% TODO: Apenas usuários com um endereço de recompensa registrado ao seu nome poderá participar. O bot manterá uma lista com estes endereços.
 
 \subsection{Carteira virtual}
 %\blindtext
