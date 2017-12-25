@@ -6,9 +6,10 @@ use crypto::ripemd160::Ripemd160;
 use crypto::digest::Digest;
 use rust_base58::{ToBase58, FromBase58};
 use rpassword;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::fs::File;
-
+//use crypto::aes::{mod, KeySize};
+//use crypto::symmetriccipher::SynchronousStreamCipher;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Wallet {
@@ -55,18 +56,7 @@ impl Wallet {
             wallet.balances.push(0);
         }
 
-        // Input password to encrypt and save wallet privkeys to persistent
-        // storage
-        {
-            let password = rpassword::prompt_password_stdout("Input encryption passphrase: ").unwrap();
-            if password == rpassword::prompt_password_stdout("Please enter passphrase again: ").unwrap() {
-                //println!("Password is correct. However, we're not using it, I'm truly sorry");
-                Ok(wallet)
-            }
-            else {
-                Err("Passphrases did not match!")
-            }
-        }
+        Ok(wallet)
     }
 
     pub fn generate_binaddr(pubkey: &Vec<u8>) -> String {
@@ -111,20 +101,51 @@ impl Wallet {
         // We first serialize our wallet to json.
         match serde_json::to_string(&self) {
             Ok(serialized) => {
-                // TODO: we should encrypt stuff here
-                // Now we open our file
-                let f = File::create(filename);
-                match f {
-                    Ok(mut f) => {
-                        match f.write_all(serialized.as_bytes()) {
-                            Ok(_) => Ok(()),
-                            _ => Err("Unable to write file.")
+                // Input password to encrypt and save wallet privkeys to persistent
+                // storage
+                let password = rpassword::prompt_password_stdout("Input encryption passphrase: ")
+                    .unwrap();
+                let sndpass = rpassword::prompt_password_stdout("Please enter passphrase again: ")
+                    .unwrap();
+                    if password == sndpass {
+                        // Encrypt serialized stuff!
+                        // Uhn, well, TODO.
+                        // Now we open our file
+                        let f = File::create(filename);
+                        match f {
+                            Ok(mut f) => {
+                                match f.write_all(serialized.as_bytes()) {
+                                    Ok(_) => Ok(()),
+                                    _ => Err("Unable to write file.")
+                                }
+                            },
+                            _ => Err("Error opening file.")
                         }
-                    },
-                    _ => Err("Error opening file.")
+                    }
+                else {
+                    Err("Passphrases did not match!")
                 }
             },
             _ => Err("Error serializing wallet.")
+        }
+    }
+
+    pub fn load(filename: &str) -> Result<Wallet, &'static str> {
+        let f = File::open(filename);
+        match f {
+            Ok(mut f) => {
+                let mut serialized = String::new();
+                match f.read_to_string(&mut serialized) {
+                    Ok(_) => {
+                        match serde_json::from_str(&serialized) {
+                            Err(_) => Err("Could not deserialize wallet."),
+                            Ok(wallet) => Ok(wallet),
+                        }
+                    },
+                    _ => Err("Could not read file.")
+                }
+            },
+            _ => Err("Could not open file."),
         }
     }
 }

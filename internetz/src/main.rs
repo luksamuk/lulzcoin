@@ -36,7 +36,7 @@ fn main() {
     println!("This program is distributed under the MIT License. Check source code for details.");
 
     // Ensure lulzcoin dir exists
-    let _ = fs::create_dir_all("~/.lulzcoin");
+    let _ = fs::create_dir_all(".lulzcoin");
 
     // Load wallet data
     println!("THIS IS A BETA! Expect bugs here and there on this wallet. Plus, please, do not");
@@ -74,10 +74,10 @@ fn main() {
                         "create" => {
                             // Retrieve name for wallet
                             let walletname = rl.readline("Please input a wallet name: ").unwrap();
-                            let filename = String::from("~/.lulzcoin/") + walletname.as_ref();
+                            let filename = String::from("./.lulzcoin/") + walletname.as_ref();
                             let filename = filename + ".lulz";
                             
-                            println!("Your wallet will temporarily be stored in ~/.lulzcoin/{}.lulz.",
+                            println!("Your wallet will be stored in ./.lulzcoin/{}.lulz.",
                                      walletname);
 
                             // Wallet test
