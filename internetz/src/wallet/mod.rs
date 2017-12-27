@@ -14,7 +14,7 @@ use std::fs::File;
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Wallet {
     pub addresses:   Vec<String>,
-    pub balances:    Vec<i64>,
+    pub balances:    Vec<f64>,
     pub last_height: usize,
     pub pubkeys:     Vec<Vec<u8>>,
     privkeys:        Vec<String>, // REALLY REALLY REALLY BAD IDEA. MUST REPLACE.
@@ -53,7 +53,7 @@ impl Wallet {
             // Generate binary addresss
             let binaddr = Wallet::generate_binaddr(&wallet.pubkeys[i]);
             wallet.addresses.push(Wallet::generate_address(&binaddr));
-            wallet.balances.push(0);
+            wallet.balances.push(0.0);
         }
 
         Ok(wallet)

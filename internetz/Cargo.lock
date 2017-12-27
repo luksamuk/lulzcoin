@@ -133,6 +133,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "internetz"
 version = "0.1.0"
 dependencies = [
+ "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.9.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "pem 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rpassword 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",

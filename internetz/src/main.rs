@@ -7,6 +7,8 @@ extern crate openssl;
 extern crate pem;
 extern crate rust_base58;
 extern crate rpassword;
+#[macro_use]
+extern crate lazy_static;
 
 extern crate rustyline;
 
@@ -14,6 +16,7 @@ extern crate rustyline;
 
 pub mod wallet;
 use wallet::Wallet;
+use std::sync::Mutex;
 
 
 
@@ -25,8 +28,23 @@ const INTERNETZ_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 static COMMANDS: &'static str =
     "quit   -- Quits application.\n\
      create -- [WIP] Generates a new wallet.\n\
-     open   -- [PLANNED] Opens a wallet.\n\
+     open   -- [WIP] Opens a wallet.\n\
      help   -- Shows this help prompt.\n";
+
+
+
+lazy_static! {
+    pub static ref WALLET: Mutex<Option<wallet::Wallet>> = Mutex::new(None);
+    pub static ref WALLET_NAME: Mutex<Option<String>> = Mutex::new(None);
+}
+
+
+fn repl_prompt() -> String {
+    format!("INTERNETZ ({}) >> ", match *WALLET_NAME.lock().unwrap() {
+        None => "No Wallet",
+        Some(ref name) => &name,
+    })
+}
 
 
 fn main() {
@@ -53,7 +71,7 @@ fn main() {
 
     println!("For a list of commands, type `help`.");
     loop {
-        let readline = rl.readline("INTERNETZ > ");
+        let readline = rl.readline(repl_prompt().as_ref());
         match readline {
             Ok(line) => {
                 rl.add_history_entry(&line);
@@ -91,10 +109,52 @@ fn main() {
                                         Ok(_) => println!("Wallet saved in {}.", filename),
                                         Err(error) => println!("Error saving wallet: {}", error),
                                     }
-                                    
                                 },
                                 Err(error) => {
                                     println!("Error generating wallet: {}", error);
+                                },
+                            };
+                        },
+                        "open" => {
+                            match *WALLET.lock().unwrap() {
+                                Some(ref wallet) => {
+                                    println!("You currently have a loaded wallet!");
+                                    let mut ans;
+                                    while {
+                                        ans = rl.readline("Do you wish to save your loaded wallet? (Y/N): ").unwrap();
+                                        ans = ans.trim().to_uppercase();
+
+                                        (ans != "Y" && ans != "N")
+                                    } {}
+
+                                    if ans == "Y" {
+                                        // TODO: Hmmm, move this out later so we don't repeat code like this.
+                                        let walletname = rl.readline("Please input a wallet name: ").unwrap();
+                                        let filename = String::from("./.lulzcoin/") + walletname.as_ref();
+                                        let filename = filename + ".lulz";
+                                        match wallet.save(filename.as_ref()) {
+                                            Ok(_) => println!("Wallet saved in {}.", filename),
+                                            Err(error) => println!("Error saving wallet: {}", error),
+                                        }
+                                    }
+                                },
+                                None => {},
+                            }
+                            
+                            let walletname = rl.readline("Input wallet name to load: ").unwrap();
+                            let filename = String::from("./.lulzcoin/") + walletname.as_ref();
+                            let filename = filename + ".lulz";
+
+                            *WALLET.lock().unwrap() = match Wallet::load(filename.as_ref()) {
+                                Ok(wallet) => {
+                                    // TODO: Decrypt wallet
+                                    *WALLET_NAME.lock().unwrap() = Some(walletname.clone());
+                                    println!("Wallet loaded.");
+                                    Some(wallet)
+                                },
+                                Err(error) => {
+                                    println!("Could not load wallet: {}", error);
+                                    None
                                 },
                             }
                             
