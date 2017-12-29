@@ -15,6 +15,9 @@ Here live the following subprojects:
 - lulzd: Sync daemon of a lulzcoin node;
 - internetz: Lulzcoin CLI wallet.
 
+## Demos
+- internetz: [First version of wallet software, properly working on console (12/29/2017).](https://asciinema.org/a/4RVIeANSLHC9bNFLEzcV6gVCO)
+
 ## License
 The license of this software is MIT, which means you can use the code in whatever way you want, but don't attribute the responsability of whatever damage you may cause while using this to me; the problem is entirely yours. This repo contains only a crazy idea; if a dishonest person used it as a scheme to steal your money (if this is even possible), go complain to said person.
 

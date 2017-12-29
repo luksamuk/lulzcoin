@@ -15,6 +15,9 @@ Planejados, residem, aqui, os seguintes subprojetos:
 - lulzd: Daemon de sincronização de um nó do lulzcoin;
 - internetz: Carteira CLI para lulzcoin.
 
+## Demos
+- internetz: [Primeira versão do software de carteira digital, funcionando em console (29/12/2017).](https://asciinema.org/a/4RVIeANSLHC9bNFLEzcV6gVCO)
+
 ## Licença
 A licença deste software é MIT, ou seja, você pode usar o código da forma como bem entender, mas não venha jogar a responsabilidade de nenhum dano que você causar em mim; o problema é inteiramente seu. Este repositório contém só uma ideia maluca; se algum desonesto usou como esquema para roubar seu dinheiro (se é que isso é possível), vá reclamar com ele.
 
