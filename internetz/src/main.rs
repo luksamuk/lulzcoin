@@ -9,7 +9,7 @@ extern crate rust_base58;
 extern crate rpassword;
 #[macro_use]
 extern crate lazy_static;
-
+extern crate rand;
 extern crate rustyline;
 
 

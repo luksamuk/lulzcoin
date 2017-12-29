@@ -8,8 +8,12 @@ use rust_base58::{ToBase58, FromBase58};
 use rpassword;
 use std::io::{Read, Write};
 use std::fs::File;
-//use crypto::aes::{mod, KeySize};
-//use crypto::symmetriccipher::SynchronousStreamCipher;
+use std::fs::metadata;
+use rand::{thread_rng, Rng};
+use crypto::aes::{ctr, KeySize};
+use crypto::symmetriccipher::SynchronousStreamCipher;
+//use crypto::scrypt::*;
+use crypto::bcrypt::bcrypt;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Wallet {
@@ -109,18 +113,68 @@ impl Wallet {
                     .unwrap();
                     if password == sndpass {
                         // Encrypt serialized stuff!
-                        // Uhn, well, TODO.
-                        // Now we open our file
-                        let f = File::create(filename);
-                        match f {
-                            Ok(mut f) => {
-                                match f.write_all(serialized.as_bytes()) {
-                                    Ok(_) => Ok(()),
-                                    _ => Err("Unable to write file.")
+                        // Generate a nice key here.
+                        let mut key = [0u8; 24];
+                        {
+                            // Our salt is "jt)oVdr42&8*r~?", with one byte per
+                            // letter, but in Rust, we declare the bytevec already.
+                            // Passing this string through xxd yields:
+                            // 00000000: 6a74 296f 5664 7234 3226 382a 727e 3f26  jt)oVdr42&8*r~?&
+                            // 00000010: 0a                                       .
+                            //
+                            // The extra . is the end of string, which we discard.
+                            let salt = [0x6a, 0x74, 0x29, 0x6f, 0x56, 0x64, 0x72, 0x34,
+                                        0x32, 0x26, 0x38, 0x2a, 0x72, 0x7e, 0x3f, 0x26];
+                            /*scrypt(password.as_bytes(),
+                                   salt,
+                                   &ScryptParams::new(255, 8, 1),
+                            &mut key);*/
+                            bcrypt(11, &salt, password.as_bytes(), &mut key);
+                                   
+                        }
+
+                        // Generate random data to be our nonce.
+                        let mut nonce = [0u8; 24]; //Vec::with_capacity(256);
+                        thread_rng().fill_bytes(&mut nonce);
+                        
+                        // Since "key" can be considered a well-formed, key, all we need to do is
+                        // encrypt our bytes using it, then write the generated buffer to our file.
+                        println!("Encrypting...");
+                        let mut cipher = ctr(KeySize::KeySize192, &key, &nonce);
+                        let mut encrypted: Vec<u8> = {
+                            let mut vec = Vec::with_capacity(serialized.as_bytes().len() as usize);
+                            for _ in 0..serialized.as_bytes().len() {
+                                vec.push(0);
+                            }
+                            vec
+                        };
+                        cipher.process(&serialized.as_bytes(), encrypted.as_mut_slice());
+
+                        // Open a file to save the nonce.
+                        let n = File::create(String::from(filename) + ".nonce");
+                        match n {
+                            Ok(mut n) => {
+                                match n.write_all(&nonce) {
+                                    Ok(_) => {
+                                        // Now we open our file to save the wallet.
+                                        let f = File::create(filename);
+                                        match f {
+                                            Ok(mut f) => {
+                                                match f.write_all(encrypted.as_slice()) { // serialized.as_bytes()
+                                                    Ok(_) => Ok(()),
+                                                    _ => Err("Unable to write wallet file.")
+                                                }
+                                            },
+                                            _ => Err("Error opening file.")
+                                        }
+                                    },
+                                    _ => Err("Unable to write unique number.")
                                 }
                             },
-                            _ => Err("Error opening file.")
+                            _ => Err("Error opening file."),
                         }
+                        
+                        
                     }
                 else {
                     Err("Passphrases did not match!")
@@ -131,18 +185,48 @@ impl Wallet {
     }
 
     pub fn load(filename: &str) -> Result<Wallet, &'static str> {
+        let mut nonce = [0u8; 24];
+        
+        let n = File::open(String::from(filename) + ".nonce");
         let f = File::open(filename);
-        match f {
-            Ok(mut f) => {
-                let mut serialized = String::new();
-                match f.read_to_string(&mut serialized) {
+
+        // First check for our nonce.
+        match n {
+            Ok(mut n) => {
+                match n.read(&mut nonce) {
                     Ok(_) => {
-                        match serde_json::from_str(&serialized) {
-                            Err(_) => Err("Could not deserialize wallet."),
-                            Ok(wallet) => Ok(wallet),
+                        // Now read our file
+                        match f {
+                            Ok(mut f) => {
+                                let mut serialized = String::new();
+                                let metadata = metadata(filename).unwrap();
+                                let mut encrypted: Vec<u8> = {
+                                    let mut vec = Vec::with_capacity(metadata.len() as usize);
+                                    for _ in 0..metadata.len() {
+                                        vec.push(0);
+                                    }
+                                    vec
+                                };
+                                
+                                match f.read(&mut encrypted) {
+                                    Ok(_) => {
+                                        // First, decrypt!
+                                        println!("Loaded file size: {} bytes", encrypted.len());
+                                        panic!("NOT IMPLEMENTED! STOP TRYING TO LOAD!");
+                                        // Now, just deserialize successfully.
+                                        match serde_json::from_str(&serialized) {
+                                            Err(_) => Err("Could not deserialize wallet."),
+                                            Ok(wallet) => Ok(wallet),
+                                        }
+                                    },
+                                    _ => Err("Could not read file.")
+                                }
+                            },
+                            _ => Err("Could not open file."),
                         }
+                        
                     },
-                    _ => Err("Could not read file.")
+                    _ => Err("Could not read unique number."),
                 }
             },
             _ => Err("Could not open file."),
