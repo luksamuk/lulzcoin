@@ -20,6 +20,9 @@ use openssl::symm::Mode;
 use hex::{FromHex, ToHex};
 use std::str;
 
+use sodiumoxide::crypto::aead;
+use sodiumoxide::crypto::pwhash::scryptsalsa208sha256::{Salt, OpsLimit, MemLimit, derive_key};
+
 
 // Our salt is "jt)oVdr42&8*r~?&", with one byte per
 // letter, but in Rust, we declare the bytevec already.
@@ -28,7 +31,13 @@ use std::str;
 // 00000010: 0a                                       .
 //
 // The extra . is the end of string, which we discard.
-const SALT: [u8; 16] = [0x6a, 0x74, 0x29, 0x6f, 0x56, 0x64, 0x72, 0x34,
+// NOTE: We doubled the salt for debug purposes. We need to replace this with
+// a proper 32-bit salt.
+//const SALT: [u8; 16] = [0x6a, 0x74, 0x29, 0x6f, 0x56, 0x64, 0x72, 0x34,
+//                        0x32, 0x26, 0x38, 0x2a, 0x72, 0x7e, 0x3f, 0x26];
+const SALT: [u8; 32] = [0x6a, 0x74, 0x29, 0x6f, 0x56, 0x64, 0x72, 0x34,
+                        0x32, 0x26, 0x38, 0x2a, 0x72, 0x7e, 0x3f, 0x26,
+                        0x6a, 0x74, 0x29, 0x6f, 0x56, 0x64, 0x72, 0x34,
                         0x32, 0x26, 0x38, 0x2a, 0x72, 0x7e, 0x3f, 0x26];
 
 
@@ -130,80 +139,32 @@ impl Wallet {
                 let sndpass = rpassword::prompt_password_stdout("Please enter passphrase again: ")
                     .unwrap();
                     if password == sndpass {
-                        // Encrypt serialized stuff!
-                        // Generate a nice key here.
-                        let mut key = [0u8; 24];
-                        {
-                            // Our salt is "jt)oVdr42&8*r~?&", with one byte per
-                            // letter, but in Rust, we declare the bytevec already.
-                            // Passing this string through xxd yields:
-                            // 00000000: 6a74 296f 5664 7234 3226 382a 727e 3f26  jt)oVdr42&8*r~?&
-                            // 00000010: 0a                                       .
-                            //
-                            // The extra . is the end of string, which we discard.
-                            /*scrypt(password.as_bytes(),
-                                   salt,
-                                   &ScryptParams::new(255, 8, 1),
-                            &mut key);*/
-                            bcrypt(11, &SALT, password.as_bytes(), &mut key);
-                                   
-                        }
+                        // using sodiumoxide
+                        let mut key = [0u8; 32];
+                        let _ = derive_key(&mut key, password.as_bytes(), &Salt(SALT), OpsLimit(11), MemLimit(16*1024));
+                        let key = aead::Key(key);
 
-                        // Generate random data to be our nonce.
-                        let mut nonce = [0u8; 32];
-                        thread_rng().fill_bytes(&mut nonce);
-                        let nonce_orig: Vec<u8> = Vec::from(nonce.to_vec());
+                        let nonce = aead::gen_nonce();
                         
                         // Since "key" can be considered a well-formed, key, all we need to do is
                         // encrypt our bytes using it, then write the generated buffer to our file.
                         println!("Encrypting...");
 
-                        // using rust-crypto
-                        /*let mut cipher = ctr(KeySize::KeySize192, &key, &nonce);
-                        let mut encrypted: Vec<u8> = {
-                            let mut vec = Vec::with_capacity(serialized.as_bytes().len() as usize);
-                            for _ in 0..serialized.as_bytes().len() {
-                                vec.push(0);
-                            }
-                            vec
-                        };
-                        cipher.process(&serialized.as_bytes(), encrypted.as_mut_slice());*/
-
-
-                        // using pure openssl
-                        let aeskey = AesKey::new_encrypt(&key).unwrap();
-                        let exceeding_bytes = (16 as usize) - (serialized.as_bytes().len() % (16 as usize));
-                        let total_size = serialized.as_bytes().len() + exceeding_bytes;
-                        println!("Number of added bytes: {}", exceeding_bytes);
-                        let mut serialized_bytes = vec![];
-                        serialized_bytes.write(serialized.as_bytes()).unwrap();
-                        for _ in serialized_bytes.len()..total_size {
-                            serialized_bytes.push(0 as u8);
-                        }
-                        println!("Current size: {}, needed: {}", serialized_bytes.len(), total_size);
-                        let mut encrypted = vec![0u8; total_size];
-                        println!("IV size: {}", nonce.len());
-                        aes_ige(&serialized_bytes, &mut encrypted, &aeskey, &mut nonce, Mode::Encrypt);
-                        //println!("Hexdump: {}", Vec::to_hex(&serialized_bytes));
-                        // TODO: We might need to write the exceeding bytes too!
-                        
+                        // using sodiumoxide
+                        let encrypted = aead::seal(serialized.as_bytes(), None, &nonce, &key);
+                        println!("Some bytes: {:?}", &encrypted[..8]);
 
                         // Open a file to save the nonce.
                         let n = File::create(String::from(filename) + ".nonce");
                         match n {
                             Ok(mut n) => {
-                                let mut nonce_xtra = Vec::with_capacity(33);
-                                let _ = nonce_xtra.write(&nonce_orig);
-                                nonce_xtra.push(exceeding_bytes as u8);
-                                let nonce_xtra = Vec::to_hex(&nonce_xtra);
-                                println!("Nonce: {}", nonce_xtra);
-                                match n.write_all(nonce_xtra.as_bytes()) {
+                                match n.write_all(nonce.as_ref()) {
                                     Ok(_) => {
                                         // Now we open our file to save the wallet.
                                         let f = File::create(filename);
                                         match f {
                                             Ok(mut f) => {
-                                                match f.write_all(encrypted.as_slice()) { // serialized.as_bytes()
+                                                match f.write_all(encrypted.as_slice()) {
                                                     Ok(_) => Ok(()),
                                                     _ => Err("Unable to write wallet file.")
                                                 }
@@ -234,17 +195,14 @@ impl Wallet {
         // First check for our nonce.
         match n {
             Ok(mut n) => {
-                //let mut xtra_nonce = [0u8; 33];
-                let mut nonce_str = String::new();
-                match n.read_to_string(&mut nonce_str) {
+                let mut nonce = [0u8; 12];
+                match n.read(&mut nonce) {
                     Ok(_) => {
-                        // Now read our file
-                        let mut xtra_nonce = Vec::from_hex(&nonce_str).unwrap();
                         match f {
                             Ok(mut f) => {
-                                let mut serialized = String::new();
+                                //let mut serialized = String::new();
                                 let metadata = metadata(filename).unwrap();
-                                let mut encrypted: Vec<u8> = {
+                                let mut encrypted = {
                                     let mut vec = Vec::with_capacity(metadata.len() as usize);
                                     for _ in 0..metadata.len() {
                                         vec.push(0);
@@ -254,43 +212,19 @@ impl Wallet {
                                 
                                 match f.read(&mut encrypted) {
                                     Ok(_) => {
-                                        // First, decrypt!
-                                        //println!("Loaded file size: {} bytes", encrypted.len());
-
-                                        let password = rpassword::prompt_password_stdout("Input decryption passphrase: ")
-                                            .unwrap();
-                                        
                                         // Generate key
-                                        
-                                        
-                                        let mut serialized = {
-                                            let mut vec = Vec::with_capacity(encrypted.len());
-                                            for _ in 0..encrypted.len() {
-                                                vec.push(0);
-                                            }
-                                            vec
-                                        };
-                                        
+                                        let mut key = [0u8; 32];
                                         {
-                                            let mut key = [0u8; 24];
-                                            bcrypt(11, &SALT, password.as_bytes(), &mut key);
-                                            let aeskey = AesKey::new_encrypt(&key).unwrap();
-                                            let mut nonce = &mut xtra_nonce[0..32];
-                                            println!("IV size: {}", nonce.len());
-                                            aes_ige(&encrypted, &mut serialized, &aeskey, &mut nonce,
-                                                    Mode::Decrypt);
+                                            let password = rpassword::prompt_password_stdout("Input decryption passphrase: ")
+                                                .unwrap();
+                                            let _ = derive_key(&mut key, password.as_bytes(), &Salt(SALT), OpsLimit(11), MemLimit(16*1024));
                                         }
-                                        let discard_bytes = xtra_nonce[32] as usize;
-                                        //println!("Serialized: {}", serialized);
-                                        println!("Discarded bytes: {}", discard_bytes);
-                                        //panic!("NOT IMPLEMENTED! STOP TRYING TO LOAD!");
-                                        
-                                        println!("Serialized: {:?}", &serialized[..20]);
-                                        
-                                        // Now, just deserialize successfully.
-                                        panic!("NOT IMPLEMENTED! STOP TRYING TO LOAD!");
-                                        let serialized = String::from_utf8(serialized[0..serialized.len() - discard_bytes].to_vec())
-                                            .unwrap();
+                                        let key = aead::Key(key);
+
+                                        // Decrypt
+                                        let decrypted = aead::open(&encrypted, None, &aead::Nonce(nonce), &key).unwrap();
+                                        let serialized = String::from_utf8_lossy(&decrypted);
+
                                         match serde_json::from_str(&serialized) {
                                             Err(_) => Err("Could not deserialize wallet."),
                                             Ok(wallet) => Ok(wallet),
