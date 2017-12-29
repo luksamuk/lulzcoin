@@ -143,7 +143,7 @@ impl Wallet {
 
                         // using sodiumoxide
                         let encrypted = aead::seal(serialized.as_bytes(), None, &nonce, &key);
-                        println!("Some bytes: {:?}", &encrypted[..8]);
+                        //println!("Some bytes: {:?}", &encrypted[..8]);
 
                         // Open a file to save the nonce.
                         let n = File::create(String::from(filename) + ".nonce");
