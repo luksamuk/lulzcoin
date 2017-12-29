@@ -28,10 +28,13 @@ use std::fs;
 
 const INTERNETZ_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 static COMMANDS: &'static str =
-    "quit   -- Quits application.\n\
-     create -- [WIP] Generates a new wallet.\n\
-     open   -- [WIP] Opens a wallet.\n\
-     help   -- Shows this help prompt.\n";
+    "quit         -- Quits application.\n\
+     create       -- Generates a new wallet.\n\
+     open         -- Opens a wallet.\n\
+     addr         -- Shows wallet addresses.\n\
+     balance      -- Shows balance for all addresses.\n\
+     balance each -- Shows balance for each address.\n\
+     help         -- Shows this help prompt.\n";
 
 
 
@@ -103,10 +106,11 @@ fn main() {
                             // Wallet test
                             match Wallet::new() {
                                 Ok(wallet) => {
-                                    println!("Wallet successfully generated. Your addresses:");
-                                    for addr in &wallet.addresses {
-                                        println!("\t{}", addr);
-                                    }
+                                    println!("Wallet successfully generated.");
+                                    //println!("Your addresses:");
+                                    //for addr in &wallet.addresses {
+                                    //    println!("\t{}", addr);
+                                    //}
                                     match wallet.save(filename.as_ref()) {
                                         Ok(_) => println!("Wallet saved in {}.", filename),
                                         Err(error) => println!("Error saving wallet: {}", error),
@@ -161,7 +165,47 @@ fn main() {
                             }
                             
                         },
-                        _ => println!("Nao implementado"),
+                        "addr" => {
+                            match *WALLET.lock().unwrap() {
+                                Some(ref wallet) => {
+                                    println!("Main address #0: {}", &wallet.addresses[0]);
+                                    let mut i = 1;
+                                    for ref addr in &wallet.addresses[1..] {
+                                        println!("Address #{}:      {}", i, addr);
+                                        i += 1;
+                                    }
+                                },
+                                None => {
+                                    println!("No wallet loaded.");
+                                }
+                            }
+                        },
+                        "balance" => {
+                            match *WALLET.lock().unwrap() {
+                                Some(ref wallet) => {
+                                    if args.len() == 0 {
+                                        let sum: f64 = wallet.balances.iter().sum();
+                                        println!("Total balance: {:.10} LULZ", sum);
+                                    } else {
+                                        match args[0] {
+                                            "each" => {
+                                                let mut i = 1;
+                                                println!("Main address #0: {:.10} LULZ", wallet.balances[0]);
+                                                for balance in &wallet.balances[1..] {
+                                                    println!("Address #{}:      {:.10} LULZ", i, balance);
+                                                    i += 1;
+                                                }
+                                            },
+                                            _ => println!("Unknown command"),
+                                        }
+                                    }
+                                },
+                                None => {
+                                    println!("No wallet loaded.");
+                                }
+                            }
+                        },
+                        _ => println!("Not implemented"),
                     }
                 }
             },

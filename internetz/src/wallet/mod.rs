@@ -1,6 +1,5 @@
 use serde_json;
 use openssl::rsa::Rsa;
-use pem::{Pem, encode};
 use crypto::sha2::Sha256;
 use crypto::ripemd160::Ripemd160;
 use crypto::digest::Digest;
@@ -9,14 +8,6 @@ use rpassword;
 use std::io::{Read, Write};
 use std::fs::File;
 use std::fs::metadata;
-use rand::{thread_rng, Rng};
-use crypto::aes::{ctr, KeySize};
-use crypto::symmetriccipher::SynchronousStreamCipher;
-//use crypto::scrypt::*;
-use crypto::bcrypt::bcrypt;
-
-use openssl::aes::{AesKey, KeyError, aes_ige};
-use openssl::symm::Mode;
 use hex::{FromHex, ToHex};
 use std::str;
 
@@ -222,13 +213,18 @@ impl Wallet {
                                         let key = aead::Key(key);
 
                                         // Decrypt
-                                        let decrypted = aead::open(&encrypted, None, &aead::Nonce(nonce), &key).unwrap();
-                                        let serialized = String::from_utf8_lossy(&decrypted);
+                                        match aead::open(&encrypted, None, &aead::Nonce(nonce), &key){
+                                            Ok(decrypted) => {
+                                                let serialized = String::from_utf8_lossy(&decrypted);
 
-                                        match serde_json::from_str(&serialized) {
-                                            Err(_) => Err("Could not deserialize wallet."),
-                                            Ok(wallet) => Ok(wallet),
+                                                match serde_json::from_str(&serialized) {
+                                                    Err(_) => Err("Could not deserialize wallet."),
+                                                    Ok(wallet) => Ok(wallet),
+                                                }
+                                            },
+                                            _ => Err("Could not decrypt wallet file."),
                                         }
+                                        
                                     },
                                     _ => Err("Could not read file.")
                                 }
