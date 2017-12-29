@@ -11,6 +11,7 @@ extern crate rpassword;
 extern crate lazy_static;
 extern crate rand;
 extern crate rustyline;
+extern crate hex;
 
 
 
